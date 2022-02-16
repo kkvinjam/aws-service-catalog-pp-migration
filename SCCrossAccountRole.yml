@@ -26,3 +26,4 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
         - arn:aws:iam::aws:policy/AWSCloudFormationReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess

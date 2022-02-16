@@ -25,6 +25,7 @@ and auto registers the stacks with AppRegistry.
 
 import logging
 import argparse
+from pprint import pprint
 import boto3
 from botocore.exceptions import ClientError
 
@@ -131,34 +132,35 @@ def list_prov_prod_summary(context):
 
 if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(prog='collect_pp_details.py',
-                                     usage='%(prog)s [-a|-r]',
+                                     usage='%(prog)s [-a|-r|-i]',
                                      description='Return all provisioned \
                                          products across accounts.')
     PARSER.add_argument("-a", "--accounts", type=str,
                         help="Comma seperated list of accounts")
+    PARSER.add_argument("-i", "--ignore", action='store_true',
+                        help="Ignore listing in Hub account")
     PARSER.add_argument("-r", "--exec_role", type=str,
                         default='SCListCrossAccountRole',
                         help="Cross account execution role to use. \
                             Default: SCListCrossAccountRole")
 
     ARGS = PARSER.parse_args()
-    EXEC_ROLE = ARGS.exec_role
     HUB_ID = get_account_id()
-    ACCOUNTS = ARGS.accounts
     OUTPUT = dict()
 
     if ARGS.accounts:
         ACCOUNTS = ARGS.accounts.split(',')
-        ACCOUNTS.append(HUB_ID)
+        if not ARGS.ignore:
+            ACCOUNTS.append(HUB_ID)
     else:
         ACCOUNTS = [HUB_ID]
 
     for account in ACCOUNTS:
         if account != HUB_ID:
-            remote_session = assume_role(account, EXEC_ROLE)
+            remote_session = assume_role(account, ARGS.exec_role)
             sc_context = remote_session.client('servicecatalog')
             OUTPUT[account] = list_prov_prod_summary(sc_context)
         else:
             OUTPUT[account] = list_prov_prod_summary(SC)
 
-    print(OUTPUT)
+    pprint(OUTPUT)
